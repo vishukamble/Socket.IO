@@ -1,5 +1,5 @@
-var moment = require('moment');
 var PORT = process.env.PORT || 3000;
+var moment = require('moment');
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
@@ -8,88 +8,85 @@ var io = require('socket.io')(http);
 app.use(express.static(__dirname + '/public'));
 
 var clientInfo = {};
-//send current users to provided socket
-function sendCurrentUsers (socket)
+
+// Sends current users to provided socket
+function sendCurrentUsers (socket) 
 {
 	var info = clientInfo[socket.id];
 	var users = [];
-	if(typeof info === 'undefined')
+
+	if (typeof info === 'undefined')
 		return;
-	Object.keys(clientInfo).forEach(function(socketId)
+
+	Object.keys(clientInfo).forEach(function (socketId) 
 	{
 		var userInfo = clientInfo[socketId];
-		if(userInfo.room === userInfo.room)
+		if (info.room === userInfo.room) 
 			users.push(userInfo.name);
 	});
 
 	socket.emit('message', 
 	{
 		name: 'System',
-		text: 'Current Users: '+users.join(', '),
+		text: 'Current users: ' + users.join(', '),
 		timestamp: moment().valueOf()
-	})
+	});
 }
 
-
-io.on('connection', function(socket)
+io.on('connection', function (socket) 
 {
-	console.log('User connected via socket.io');
-	//Sends a notification if someone disconnects
-	socket.on('disconnect', function()
+	console.log('User connected via socket.io!');
+
+	socket.on('disconnect', function () 
 	{
 		var userData = clientInfo[socket.id];
-		if(typeof userData !== 'undefined')
+
+		if (typeof userData !== 'undefined') 
 		{
 			socket.leave(userData.room);
-			io.to(userData.room).emit('message',
+			io.to(userData.room).emit('message', 
 			{
 				name: 'System',
-				text: userData.name+' has left the room',
+				text: userData.name + ' has left!',
 				timestamp: moment().valueOf()
 			});
-			delete userData;
+			delete clientInfo[socket.id];
 		}
 	});
 
-	//Sends a msg to everyone in room when new user joins
-	socket.on('joinRoom', function(req)
+	socket.on('joinRoom', function (req) 
 	{
 		clientInfo[socket.id] = req;
 		socket.join(req.room);
-		socket.broadcast.to(req.room).emit('message',
+		socket.broadcast.to(req.room).emit('message', 
 		{
 			name: 'System',
-			text: req.name+' has joined the room',
+			text: req.name + ' has joined!',
 			timestamp: moment().valueOf()
 		});
 	});
 
-	socket.on('message', function(message)
-	{
-		console.log('Message recieved '+message.text);
-		
-		if(message.text === '@currentUsers')
+	socket.on('message', function (message) {
+		console.log('Message received: ' + message.text);
+
+		if (message.text === '@currentUsers') 
 			sendCurrentUsers(socket);
-		else
+		else 
 		{
 			message.timestamp = moment().valueOf();
-			io.to(clientInfo[socket.id],room).emit('message',message);
+			io.to(clientInfo[socket.id].room).emit('message', message);	
 		}
-
-		message.timestamp = moment().valueOf();
-		io.to(clientInfo[socket.id].room).emit('message', message);
 	});
 
 	socket.emit('message', 
 	{
 		name: 'System',
-		text: 'Welcome to the chat application',
+		text: 'Welcome to the chat application!',
 		timestamp: moment().valueOf()
 	});
-}); //listen to events
+});
 
-
-http.listen(PORT, function() 
+http.listen(PORT, function () 
 {
-	console.log('Server starting....');
+	console.log('Server started......');
 });
