@@ -12,7 +12,23 @@ var clientInfo = {};
 io.on('connection', function(socket)
 {
 	console.log('User connected via socket.io');
-	
+	//Sends a notification if someone disconnects
+	socket.on('disconnect', function()
+	{
+		var userData = clientInfo[socket.id];
+		if(typeof userData !== 'undefined')
+		{
+			socket.leave(userData.room);
+			io.to(userData.room).emit('message',
+			{
+				name: 'System',
+				text: userData.name+' has left the room',
+				timestamp: moment().valueOf()
+			});
+			delete userData;
+		}
+	});
+
 	//Sends a msg to everyone in room when new user joins
 	socket.on('joinRoom', function(req)
 	{
