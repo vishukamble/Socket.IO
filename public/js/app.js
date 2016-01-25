@@ -21,7 +21,7 @@ socket.on('message', function (data)
 	var $message = jQuery('<li class="list-group-item"></li>');
 
 	console.log('New message:');
-	console.log(message.text);
+	console.log(data.text);
 
 	$message.append('<p><strong>' + data.name + ' ' + momentTimestamp.local().format('h:mm a') + '</strong></p>');
 	$message.append('<p>' + data.text + '</p>');
