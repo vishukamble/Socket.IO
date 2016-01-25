@@ -7,16 +7,31 @@ var io = require('socket.io')(http);
 
 app.use(express.static(__dirname + '/public'));
 
+var clientInfo = {};
+
 io.on('connection', function(socket)
 {
 	console.log('User connected via socket.io');
 	
+	//Sends a msg to everyone in room when new user joins
+	socket.on('joinRoom', function(req)
+	{
+		clientInfo[socket.id] = req;
+		socket.join(req.room);
+		socket.broadcast.to(req.room).emit('message',
+		{
+			name: 'System',
+			text: req.name+' has joined the room',
+			timestamp: moment().valueOf()
+		});
+	});
+
 	socket.on('message', function(message)
 	{
 		console.log('Message recieved '+message.text);
 		
 		message.timestamp = moment().valueOf();
-		io.emit('message', message);
+		io.to(clientInfo[socket.id].room).emit('message', message);
 	});
 
 	socket.emit('message', 
