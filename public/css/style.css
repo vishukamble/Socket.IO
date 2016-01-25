@@ -1,5 +1,6 @@
 .vertical-center
 {
+	background: url(../img/home.jpg) no-repeat top center;
 	min-height: 100vh;
 	margin: 0;
 	display: flex;
